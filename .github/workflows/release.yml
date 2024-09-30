@@ -29,8 +29,22 @@ jobs:
           node-version: "20"
       - name: Install dependencies
         run: npm install
+      - name: Create Release Branch
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git checkout -b release-${GITHUB_RUN_ID}
       - name: Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RELEASE_ENVIRONMENT: ${{ github.event.inputs.environment }}
         run: npx semantic-release
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "chore(release): ${GITHUB_RUN_ID} [skip ci]"
+          title: "Release ${GITHUB_RUN_ID}"
+          body: "Automated release by semantic-release"
+          branch: release-${GITHUB_RUN_ID}
+          base: main
