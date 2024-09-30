@@ -24,7 +24,7 @@ jobs:
           echo "GREETING_PREFIX=Hola" > .env
       - name: Test with pytest
         run: |
-          pytest test_main.py
+          pytest main_test.py
 
   release:
     needs: test
