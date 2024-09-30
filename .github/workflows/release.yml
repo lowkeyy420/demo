@@ -39,12 +39,3 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RELEASE_ENVIRONMENT: ${{ github.event.inputs.environment }}
         run: npx semantic-release
-      - name: Create Pull Request
-        uses: peter-evans/create-pull-request@v5
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          commit-message: "chore(release): ${GITHUB_RUN_ID} [skip ci]"
-          title: "Release ${GITHUB_RUN_ID}"
-          body: "Automated release by semantic-release"
-          branch: release-${GITHUB_RUN_ID}
-          base: main
