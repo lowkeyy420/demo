@@ -1,6 +1,6 @@
 {
   "name": "Demo",
-  "version": "0.0.0.0",
+  "version": "0.0.0-developmen",
   "private": true,
   "scripts": {
     "semantic-release": "semantic-release"
