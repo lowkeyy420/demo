@@ -1,11 +1,12 @@
 {
   "name": "Demo",
-  "version": "0.0.0-developmen",
+  "version": "0.0.0-development",
   "private": true,
   "scripts": {
     "semantic-release": "semantic-release"
   },
   "devDependencies": {
-    "semantic-release": "^21.0.1"
+    "semantic-release": "^21.0.1",
+    "@semantic-release/git": "^10.0.1"
   }
 }

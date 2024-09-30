@@ -1,17 +1,16 @@
-name: Release
+name: Multi-environment Release
 
 on:
   workflow_dispatch:
     inputs:
-      releaseType:
-        description: "Type of release"
+      environment:
+        description: "Release environment"
         required: true
-        default: "patch"
+        default: "development"
         type: choice
         options:
-          - patch
-          - minor
-          - major
+          - development
+          - production
 
 jobs:
   release:
@@ -21,14 +20,17 @@ jobs:
       issues: write
       pull-requests: write
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
       - name: Setup Node.js
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
           node-version: "20"
       - name: Install dependencies
-        run: npm install -g semantic-release @semantic-release/exec
+        run: npm ci
       - name: Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_ENVIRONMENT: ${{ github.event.inputs.environment }}
         run: npx semantic-release
