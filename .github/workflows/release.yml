@@ -11,6 +11,10 @@ on:
         options:
           - development
           - production
+  push:
+    branches:
+      - main
+      - development
 
 jobs:
   release:
@@ -29,11 +33,11 @@ jobs:
           node-version: "20"
       - name: Install dependencies
         run: npm install
-      - name: Create Release Branch
-        run: |
-          git config user.name github-actions
-          git config user.email github-actions@github.com
-          git checkout -b release-${GITHUB_RUN_ID}
+      - name: Docker Login
+        env:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+        run: echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
       - name: Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
