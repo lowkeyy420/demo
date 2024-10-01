@@ -13,3 +13,4 @@ if __name__ == "__main__":
     print(greeting("Bro"))
     print(greeting("Are"))
     print(greeting("You"))
+    print(greeting("Doing"))
