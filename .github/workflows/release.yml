@@ -2,15 +2,6 @@ name: Multi-environment Release
 
 on:
   workflow_dispatch:
-    inputs:
-      environment:
-        description: "Release environment"
-        required: true
-        default: "development"
-        type: choice
-        options:
-          - development
-          - production
   push:
     branches:
       - main
