@@ -1,0 +1,91 @@
+name: build check pipeline
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    name: Build Check
+    runs-on:
+      group: default
+    env:
+      PROJECT_GROUP: bappenas
+      PROJECT_NAME: bappenas-documentation
+      BUILD_CONTEXT: "{{defaultContext}}"
+      MAJOR: "2"
+      MINOR: "${{ github.run_number }}"
+      PATCH: "${{ github.run_attempt }}"
+      REGISTRY_URL: "registry.sdlc.lacak.io"
+    outputs:
+      image_name: ${{ steps.output-image.outputs.image_name }}
+      image_version: ${{ steps.output-image.outputs.image_version }}
+    steps:
+      - name: mask secret and set env using xargs
+        run: |
+          echo '
+          IMAGE_NAME=${{env.PROJECT_NAME}}-image
+          IMAGE_VERSION=${{env.MAJOR}}.${{env.MINOR}}.${{env.PATCH}}
+          ' >> "$GITHUB_ENV"
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: ${{env.BUILD_CONTEXT}}
+          push: false
+          tags: ${{env.REGISTRY_URL}}/${{env.IMAGE_NAME}}:${{env.IMAGE_VERSION}} , ${{env.REGISTRY_URL}}/${{env.IMAGE_NAME}}:latest
+      - name: Output image version
+        id: output-image
+        run: |
+          echo "image_name=${{env.PROJECT_NAME}}-image" >> "$GITHUB_OUTPUT"
+          echo "image_version=${{env.MAJOR}}.${{env.MINOR}}.${{env.PATCH}}" >> "$GITHUB_OUTPUT"
+
+  update_development_branch:
+    name: Development branch sync PR
+    needs: build
+    runs-on: ["valid-kubernetes-action-runner"]
+    permissions:
+      contents: write
+      pull-requests: write
+    outputs:
+      pull-request-number: ${{ steps.cpr.outputs.pull-request-number }}
+    steps:
+      - name: pull repo
+        uses: actions/checkout@v4
+        with:
+          ref: development
+      - name: Reset development branch to sync main
+        run: |
+          git fetch origin main:main
+          git reset --hard main
+      - name: Create a pull request for development branch build
+        id: cpr
+        uses: peter-evans/create-pull-request@v7
+        with:
+          title: "build(dev): `bump to ${{ needs.build.outputs.image_version }}`"
+          commit-message: bump development to ${{ needs.build.outputs.image_version }}
+          branch: development-promotion
+          delete-branch: true
+          body: |
+            pull request for development environment
+            bump version to: ${{ needs.build.outputs.image_version }}
+            automated using github action
+          labels: |
+            bot
+            action
+            automated pr
+            production
+            automerge
+          draft: false
+          assignees: thaddeuscleo
+      - id: automerge
+        name: automerge development
+        uses: "pascalgn/automerge-action@v0.16.4"
+        env:
+          GITHUB_TOKEN: "${{ secrets.PAT }}"
+          MERGE_LABELS: "automerge"
+          MERGE_METHOD: "merge"
+          PULL_REQUEST: "${{ steps.cpr.outputs.pull-request-number }}"
