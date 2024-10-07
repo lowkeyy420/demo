@@ -15,3 +15,4 @@ if __name__ == "__main__":
     print(greeting("You"))
     print(greeting("Doing"))
     print(greeting("Something"))
+    print(greeting("Good"))
